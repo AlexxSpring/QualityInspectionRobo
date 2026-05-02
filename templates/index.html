@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Inspection Dashboard</title>
+    <!-- Modern Typography: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="header glass-panel">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fa-solid fa-microchip logo-icon"></i>
+                    <h1>IotRoboDash</h1>
+                </div>
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span> System Online
+                </div>
+            </div>
+        </header>
+
+        <main class="grid-container">
+            <!-- Camera Feed -->
+            <section class="card glass-panel col-span-2">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-camera"></i> Live Inspection Feed</h2>
+                </div>
+                <div class="card-content stream-container">
+                    <!-- The placeholder src will be replaced by the JS or point to the stream directly -->
+                    <img id="video-stream" src="/api/camera/stream" alt="Live Camera Stream" class="video-feed" />
+                    <div class="overlay-scan"></div>
+                </div>
+            </section>
+
+            <!-- Quality Result (PASS/FAIL) -->
+            <section class="card glass-panel quality-card" id="quality-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-clipboard-check"></i> Quality Status</h2>
+                </div>
+                <div class="card-content flex-center">
+                    <div class="status-badge" id="quality-status">
+                        <i class="fa-solid fa-spinner fa-spin"></i> AWAITING
+                    </div>
+                    <p class="status-details" id="quality-details">Scanning object...</p>
+                </div>
+            </section>
+
+            <!-- Sensor Data Panel -->
+            <section class="card glass-panel col-span-2 row-span-1">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> Real-time Telemetry</h2>
+                </div>
+                <div class="card-content telemetry-grid">
+                    <div class="telemetry-item">
+                        <i class="fa-solid fa-weight-scale item-icon text-blue"></i>
+                        <div class="item-info">
+                            <span class="item-label">Load Cell</span>
+                            <span class="item-value" id="val-weight">-- kg</span>
+                        </div>
+                    </div>
+                    <div class="telemetry-item">
+                        <i class="fa-solid fa-ruler-horizontal item-icon text-purple"></i>
+                        <div class="item-info">
+                            <span class="item-label">Ultrasonic</span>
+                            <span class="item-value" id="val-distance">-- cm</span>
+                        </div>
+                    </div>
+                    <div class="telemetry-item">
+                        <i class="fa-solid fa-wave-square item-icon text-orange"></i>
+                        <div class="item-info">
+                            <span class="item-label">IR Sensor</span>
+                            <span class="item-value" id="val-ir">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Measurement Comparison -->
+            <section class="card glass-panel">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-code-compare"></i> Measurement Engine</h2>
+                </div>
+                <div class="card-content">
+                    <div class="comparison-list">
+                        <div class="comp-row">
+                            <span>Weight (Exp. 2.5kg)</span>
+                            <div class="progress-track">
+                                <div class="progress-fill fill-blue" id="prog-weight" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                        <div class="comp-row">
+                            <span>Dist. (Exp. < 20cm)</span>
+                            <div class="progress-track">
+                                <div class="progress-fill fill-purple" id="prog-dist" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Controls (Mocked) -->
+            <section class="card glass-panel">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-gamepad"></i> Manual Override</h2>
+                </div>
+                <div class="card-content controls-grid">
+                    <button class="control-btn" id="btn-servo"><i class="fa-solid fa-rotate-right"></i> Cycle Servo</button>
+                    <button class="control-btn" id="btn-light"><i class="fa-solid fa-lightbulb"></i> Toggle Light</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
