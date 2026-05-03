@@ -3,7 +3,7 @@ import logging
 
 try:
     from gpiozero import DigitalInputDevice
-    from config.hardware import PIN_IR_OUT
+    from sys_config.hardware import PIN_IR_OUT
     
     # Initialize the sensor. IR obstacle sensors are often active LOW.
     ir_sensor = DigitalInputDevice(PIN_IR_OUT, pull_up=True)

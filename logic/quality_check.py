@@ -1,36 +1,49 @@
-from sensors.loadcell import read_weight
 from sensors.ultrasonic import read_distance
 from sensors.ir import read_ir_status
+from sys_config.thresholds import DISTANCE_MAX, IR_EXPECTED_DETECTED
+from controllers.servo import set_servo_angle
+from controllers.lighting import set_led_state
 
-def evaluate_quality() -> dict:
+def evaluate_quality(actuate_hardware: bool = True) -> dict:
     """
-    Mock logic for determining PASS/FAIL based on expected vs actual measurements.
+    Logic for determining PASS/FAIL based on expected vs actual measurements.
+    Optionally triggers hardware state based on result.
     """
-    weight = read_weight()
     distance = read_distance()
     ir_status = read_ir_status()
 
-    # Dummy thresholds for MVP
-    # Pass if:
-    # 1. Weight is between 2.4 and 2.6 kg
-    # 2. Distance is less than 20 cm
-    # 3. IR sensor detects the object
-    
     issues = []
     
-    if not (2.4 <= weight <= 2.6):
-        issues.append(f"Weight {weight}kg is out of tolerance (2.4-2.6kg)")
+    if distance > DISTANCE_MAX:
+        issues.append(f"Distance {distance}cm is too far (>{DISTANCE_MAX}cm)")
         
-    if distance > 20.0:
-        issues.append(f"Distance {distance}cm is too far (>20cm)")
-        
-    if not ir_status:
-        issues.append("Object not detected by IR sensor")
+    if ir_status != IR_EXPECTED_DETECTED:
+        status_str = "detected" if ir_status else "not detected"
+        expected_str = "detected" if IR_EXPECTED_DETECTED else "not detected"
+        issues.append(f"IR object {status_str} (expected {expected_str})")
         
     is_pass = len(issues) == 0
     details = "PASS: All checks cleared." if is_pass else f"FAIL: {', '.join(issues)}"
     
+    # --- Automation Triggers ---
+    if actuate_hardware:
+        if is_pass:
+            set_led_state("GREEN", "ON")
+            set_led_state("RED", "OFF")
+            # Keep servo at default position (e.g. 0)
+            set_servo_angle(0)
+        else:
+            set_led_state("GREEN", "OFF")
+            set_led_state("RED", "ON")
+            # Trigger servo to reject the object (e.g. angle 90)
+            set_servo_angle(90)
+    
     return {
         "is_pass": is_pass,
-        "details": details
+        "details": details,
+        "measurements": {
+            "weight": 0.0, # Kept for DB compatibility
+            "distance": distance,
+            "ir": ir_status
+        }
     }

@@ -19,4 +19,5 @@ LOADCELL_CALIBRATION_FACTOR = 1.0 # Update this after calibrating with a known w
 PIN_SERVO_PWM = 12
 
 # --- Lighting / LED ---
-PIN_LIGHT_PWM = 13
+PIN_LED_GREEN = 13
+PIN_LED_RED = 19

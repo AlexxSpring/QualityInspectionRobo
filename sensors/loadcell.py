@@ -4,7 +4,7 @@ import logging
 
 try:
     from hx711 import HX711
-    from config.hardware import PIN_HX711_DT, PIN_HX711_SCK, LOADCELL_CALIBRATION_FACTOR
+    from sys_config.hardware import PIN_HX711_DT, PIN_HX711_SCK, LOADCELL_CALIBRATION_FACTOR
     
     # Initialize HX711
     hx = HX711(dout_pin=PIN_HX711_DT, pd_sck_pin=PIN_HX711_SCK)
