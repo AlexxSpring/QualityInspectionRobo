@@ -2,7 +2,7 @@ import logging
 
 try:
     from gpiozero import AngularServo
-    from config.hardware import PIN_SERVO_PWM
+    from sys_config.hardware import PIN_SERVO_PWM
     from gpiozero.pins.pigpio import PiGPIOFactory
     
     # Use pigpio for hardware PWM on servo to avoid jitter

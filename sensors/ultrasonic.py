@@ -3,7 +3,7 @@ import logging
 
 try:
     from gpiozero import DistanceSensor
-    from config.hardware import PIN_ULTRASONIC_ECHO, PIN_ULTRASONIC_TRIGGER
+    from sys_config.hardware import PIN_ULTRASONIC_ECHO, PIN_ULTRASONIC_TRIGGER
     
     # Initialize the sensor using configuration
     sensor = DistanceSensor(echo=PIN_ULTRASONIC_ECHO, trigger=PIN_ULTRASONIC_TRIGGER)

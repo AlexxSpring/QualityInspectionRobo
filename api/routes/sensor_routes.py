@@ -1,10 +1,5 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-import sys
-import os
-
-# Add parent dir to path to import sensors
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from sensors.loadcell import read_weight
 from sensors.ultrasonic import read_distance

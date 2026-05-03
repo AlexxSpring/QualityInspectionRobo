@@ -1,21 +1,31 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-import sys
-import os
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from logic.quality_check import evaluate_quality
+from logic.database import log_inspection
 
 router = APIRouter()
 
 class QualityResult(BaseModel):
     is_pass: bool
     details: str
+    measurements: dict
+
+@router.get("/status", response_model=QualityResult)
+async def get_quality_status():
+    return evaluate_quality(actuate_hardware=False)
 
 @router.post("/check", response_model=QualityResult)
 async def check_quality():
-    # In a real scenario, this might read from sensors directly or accept sensor data as input.
-    # For MVP, we'll let evaluate_quality read the dummy sensors.
     result = evaluate_quality()
+    
+    # Log the inspection to the database
+    log_inspection(
+        weight_kg=result["measurements"]["weight"],
+        distance_cm=result["measurements"]["distance"],
+        ir_detected=result["measurements"]["ir"],
+        is_pass=result["is_pass"],
+        details=result["details"]
+    )
+    
     return result
