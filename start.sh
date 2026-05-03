@@ -1,15 +1,18 @@
 #!/bin/bash
 
+# Always run from the directory where this script lives
+cd "$(dirname "$0")"
+
 echo "Starting Quality Inspection Dashboard Setup..."
 
 # Check if .venv exists, if not, create it
 if [ ! -d ".venv" ]; then
     echo "Virtual environment not found. Creating one..."
     python3 -m venv .venv
-    
+
     echo "Activating virtual environment..."
     source .venv/bin/activate
-    
+
     echo "Installing dependencies..."
     pip install -r requirements.txt
 else
