@@ -11,6 +11,10 @@ class QualityResult(BaseModel):
     details: str
     measurements: dict
 
+@router.get("/status", response_model=QualityResult)
+async def get_quality_status():
+    return evaluate_quality(actuate_hardware=False)
+
 @router.post("/check", response_model=QualityResult)
 async def check_quality():
     result = evaluate_quality()

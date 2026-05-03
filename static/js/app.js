@@ -11,8 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const qualityStatus = document.getElementById('quality-status');
     const qualityDetails = document.getElementById('quality-details');
     
+    const btnInspect = document.getElementById('btn-inspect');
     const btnServo = document.getElementById('btn-servo');
-    const btnLight = document.getElementById('btn-light');
+    const btnLightGreen = document.getElementById('btn-light-green');
+    const btnLightRed = document.getElementById('btn-light-red');
     
     const logsBody = document.getElementById('logs-body');
 
@@ -45,10 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Fetch Quality Data
-    async function fetchQuality() {
+    // Fetch Quality Status (Polling without logging/actuating)
+    async function fetchQualityStatus() {
         try {
-            const res = await fetch('/api/quality/check', { method: 'POST' });
+            const res = await fetch('/api/quality/status');
             if (!res.ok) throw new Error('Network response was not ok');
             const data = await res.json();
             
@@ -63,12 +65,32 @@ document.addEventListener('DOMContentLoaded', () => {
             qualityDetails.innerText = data.details;
 
         } catch (error) {
-            console.error("Error fetching quality data:", error);
+            console.error("Error fetching quality status:", error);
             qualityStatus.className = 'status-badge';
             qualityStatus.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> ERROR';
             qualityDetails.innerText = "Connection lost.";
         }
     }
+
+    // Manual Inspection Trigger
+    btnInspect.addEventListener('click', async () => {
+        const btn = btnInspect;
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Inspecting...';
+        btn.disabled = true;
+        
+        try {
+            await fetch('/api/quality/check', { method: 'POST' });
+            await fetchLogs(); // Refresh logs immediately after inspection
+        } catch(e) {
+            console.error("Inspection failed:", e);
+        } finally {
+            setTimeout(() => {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }, 1000);
+        }
+    });
 
     // Controls
     btnServo.addEventListener('click', async () => {
@@ -93,12 +115,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    btnLight.addEventListener('click', async () => {
+    btnLightGreen.addEventListener('click', async () => {
         try {
             await fetch('/api/control/light', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ state: 'TOGGLE', brightness: 100 })
+                body: JSON.stringify({ color: 'GREEN', state: 'TOGGLE' })
+            });
+        } catch(e) {
+            console.error(e);
+        }
+    });
+    
+    btnLightRed.addEventListener('click', async () => {
+        try {
+            await fetch('/api/control/light', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ color: 'RED', state: 'TOGGLE' })
             });
         } catch(e) {
             console.error(e);
@@ -138,12 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start Polling
     setInterval(() => {
         fetchSensors();
-        fetchQuality();
+        fetchQualityStatus();
         fetchLogs();
     }, POLLING_RATE);
     
     // Initial fetch
     fetchSensors();
-    fetchQuality();
+    fetchQualityStatus();
     fetchLogs();
 });
