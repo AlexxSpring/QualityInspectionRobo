@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const btnServo = document.getElementById('btn-servo');
     const btnLight = document.getElementById('btn-light');
+    
+    const logsBody = document.getElementById('logs-body');
 
     // Polling Interval
     const POLLING_RATE = 1000; // 1 second
@@ -103,13 +105,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Fetch Logs
+    async function fetchLogs() {
+        try {
+            const res = await fetch('/api/logs');
+            if (!res.ok) throw new Error('Network response was not ok');
+            const data = await res.json();
+            
+            logsBody.innerHTML = ''; // Clear current
+            
+            data.forEach(log => {
+                const tr = document.createElement('tr');
+                
+                const timeStr = new Date(log.timestamp.replace(' ', 'T')).toLocaleTimeString();
+                const badgeClass = log.is_pass ? 'badge-pass' : 'badge-fail';
+                const badgeText = log.is_pass ? 'PASS' : 'FAIL';
+                
+                tr.innerHTML = `
+                    <td>${timeStr}</td>
+                    <td>${log.weight_kg.toFixed(2)} kg</td>
+                    <td>${log.distance_cm.toFixed(1)} cm</td>
+                    <td><span class="badge-sm ${badgeClass}">${badgeText}</span></td>
+                `;
+                logsBody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error("Error fetching logs:", error);
+        }
+    }
+
     // Start Polling
     setInterval(() => {
         fetchSensors();
         fetchQuality();
+        fetchLogs();
     }, POLLING_RATE);
     
     // Initial fetch
     fetchSensors();
     fetchQuality();
+    fetchLogs();
 });

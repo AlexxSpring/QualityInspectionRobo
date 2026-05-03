@@ -356,6 +356,45 @@ h1 {
     transform: scale(0.98);
 }
 
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.logs-table th {
+    padding: 1rem;
+    border-bottom: 1px solid var(--panel-border);
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.logs-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+.logs-table tr:hover td {
+    background: rgba(255,255,255,0.02);
+}
+
+.badge-sm {
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-pass { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.badge-fail { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
 /* Responsive */
 @media (max-width: 1024px) {
     .grid-container {

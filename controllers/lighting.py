@@ -2,7 +2,7 @@ import logging
 
 try:
     from gpiozero import PWMOutputDevice
-    from config.hardware import PIN_LIGHT_PWM
+    from sys_config.hardware import PIN_LIGHT_PWM
     
     light = PWMOutputDevice(PIN_LIGHT_PWM)
     HARDWARE_AVAILABLE = True
