@@ -57,6 +57,9 @@ body {
 
 .header {
     padding: 1.5rem 2.5rem;
+}
+
+.header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
