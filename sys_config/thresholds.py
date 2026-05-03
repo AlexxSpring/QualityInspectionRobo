@@ -4,7 +4,7 @@ Centralized Tolerances and Thresholds
 
 # Weight tolerances in kg
 WEIGHT_MIN = 2.4
-WEIGHT_MAX = 2.6
+WEIGHT_MAX = 2.6 #max
 
 # Distance tolerances in cm
 DISTANCE_MAX = 20.0

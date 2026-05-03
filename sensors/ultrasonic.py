@@ -8,8 +8,9 @@ try:
     # Initialize the sensor using configuration
     sensor = DistanceSensor(echo=PIN_ULTRASONIC_ECHO, trigger=PIN_ULTRASONIC_TRIGGER)
     HARDWARE_AVAILABLE = True
+    logging.info(f"Ultrasonic sensor initialized successfully on pins {PIN_ULTRASONIC_ECHO}/{PIN_ULTRASONIC_TRIGGER}")
 except (ImportError, Exception) as e:
-    logging.warning(f"Ultrasonic hardware not available, falling back to mock. Error: {e}")
+    logging.error(f"Ultrasonic hardware not available, falling back to mock. Error: {e}")
     HARDWARE_AVAILABLE = False
     sensor = None
 
