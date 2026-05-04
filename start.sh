@@ -1,25 +1,24 @@
 #!/bin/bash
 
-# Always run from the directory where this script lives
 cd "$(dirname "$0")"
 
 echo "Starting Quality Inspection Dashboard Setup..."
 
-# Check if .venv exists, if not, create it
 if [ ! -d ".venv" ]; then
-    echo "Virtual environment not found. Creating one..."
-    python3 -m venv .venv
-
-    echo "Activating virtual environment..."
-    source .venv/bin/activate
-
-    echo "Installing dependencies..."
-    pip install -r requirements.txt
-else
-    echo "Activating existing virtual environment..."
-    source .venv/bin/activate
+python3 -m venv .venv --system-site-packages
 fi
+
+echo "Activating virtual environment..."
+source .venv/bin/activate
+
+# 🔥 Correct place
+
+export GPIOZERO_PIN_FACTORY=lgpio
+
+echo "Installing dependencies..."
+pip install -r requirements.txt
 
 echo "Starting Uvicorn Server..."
 export PYTHONPATH=$(pwd)
 uvicorn app.main:app --host 0.0.0.0 --port 8000
+
