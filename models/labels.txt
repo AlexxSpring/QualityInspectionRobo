@@ -1,0 +1,4 @@
+0 defective_screw
+1 good_screw
+2 defective_ball
+3 good_ball

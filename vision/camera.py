@@ -1,47 +1,127 @@
-import asyncio
-import logging
+import cv2
+import time
 
-try:
-    import cv2
-    OPENCV_AVAILABLE = True
-except ImportError:
-    logging.warning("OpenCV not available. Falling back to mock camera.")
-    OPENCV_AVAILABLE = False
+from vision.processor import extract_object
+from vision.classifier import classify_object
 
-async def generate_frames():
-    """
-    OpenCV camera frame generator with mock fallback.
-    Yields motion jpeg stream.
-    """
-    if OPENCV_AVAILABLE:
-        # Try to open the default camera
-        cap = cv2.VideoCapture(0)
-        
-        # If camera opened successfully
-        if cap.isOpened():
-            try:
-                while True:
-                    success, frame = cap.read()
-                    if not success:
-                        break
-                    
-                    # Add a simple text overlay
-                    cv2.putText(frame, "IotRoboDash LIVE", (10, 30), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                    
-                    ret, buffer = cv2.imencode('.jpg', frame)
-                    frame_bytes = buffer.tobytes()
-                    
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-                    await asyncio.sleep(0.05) # ~20 fps
-            finally:
-                cap.release()
-                
-    # Fallback if no OpenCV or no camera found
+camera = None  # global camera object
+
+
+def generate_frames():
+    global camera
+
+    # =========================
+    # Initialize camera
+    # =========================
+    if camera is None:
+        for i in range(3):  # try multiple indexes
+            cam = cv2.VideoCapture(i)
+            if cam.isOpened():
+                camera = cam
+                print(f"✅ Camera opened on index {i}")
+                break
+
+    if camera is None or not camera.isOpened():
+        print("❌ Camera not available")
+        return
+
+    # Set resolution
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+    # =========================
+    # Main Loop
+    # =========================
     while True:
-        dummy_jpeg = b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x03\x02\x02\x02\x02\x02\x03\x02\x02\x02\x03\x03\x03\x03\x04\x06\x04\x04\x04\x04\x04\x08\x06\x06\x05\x06\t\x08\n\n\t\x08\t\t\n\x0c\x0f\x0c\n\x0b\x0e\x0b\t\t\r\x11\r\x0e\x0f\x10\x10\x11\x10\n\x0c\x12\x13\x12\x10\x13\x0f\x10\x10\x10\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x08\x01\x01\x00\x00?\x00\x00\xff\xd9'
-        
+        success, frame = camera.read()
+
+        # Safety check
+        if not success or frame is None:
+            print("⚠ Frame read failed")
+            break
+
+        # ========================= 
+        h, w, _ = frame.shape
+
+        roi_x1 = int(w * 0.3)
+        roi_y1 = int(h * 0.4)
+        roi_x2 = int(w * 0.7)
+        roi_y2 = int(h * 0.8)
+
+        roi = frame[roi_y1:roi_y2, roi_x1:roi_x2]
+
+        # Draw ROI box (BLUE)
+        cv2.rectangle(frame, (roi_x1, roi_y1), (roi_x2, roi_y2), (255, 255, 0), 2)
+
+        # =========================
+        # STEP 1: Detect object
+        # =========================
+        cropped, box = extract_object(roi)
+
+        if box is not None and cropped is not None:
+            x, y, bw, bh = box
+            x+= roi_x1
+            y+= roi_y1
+
+            # =========================
+            # STEP 2: Dimension
+            # =========================
+            pixel_to_cm = 0.02  # 🔧 calibrate later
+            width_cm = bw * pixel_to_cm
+            height_cm = bh * pixel_to_cm
+
+            # =========================
+            # STEP 3: Classification
+            # =========================
+            label, conf = classify_object(cropped)
+
+            # =========================
+            # Draw bounding box
+            # =========================
+            color = (0, 255, 0) if "Good" in label else (0, 0, 255)
+
+            cv2.rectangle(frame, (x, y), (x + bw, y + bh), color, 2)
+
+            # Label background
+            cv2.rectangle(frame, (x, y - 30), (x + bw, y), (0, 0, 0), -1)
+
+            # Label text
+            cv2.putText(
+                frame,
+                f"{label} ({conf:.2f})",
+                (x + 5, y - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 255, 255),
+                2
+            )
+
+            # Dimension text
+            cv2.putText(
+                frame,
+                f"W:{width_cm:.2f}cm H:{height_cm:.2f}cm",
+                (x, y + bh + 20),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 0),
+                2
+            )
+
+        # =========================
+        # Convert frame to JPEG
+        # =========================
+        ret, buffer = cv2.imencode('.jpg', frame)
+
+        if not ret:
+            continue
+
+        frame_bytes = buffer.tobytes()
+
+        # =========================
+        # Stream frame (FASTAPI)
+        # =========================
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + dummy_jpeg + b'\r\n')
-        await asyncio.sleep(0.1)
+               b'Content-Type: image/jpeg\r\n\r\n' +
+               frame_bytes + b'\r\n')
+
+        time.sleep(0.03)
