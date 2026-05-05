@@ -1,5 +1,6 @@
 import cv2
 import time
+import numpy as np
 
 from vision.processor import extract_object
 from vision.classifier import classify_object
@@ -41,8 +42,12 @@ def generate_frames():
                 print(f"❌ PiCamera error: {e}")
 
     if camera is None:
-        print("❌ No camera available")
-        return
+        print("❌ No camera available, generating dummy stream")
+        # Generate dummy frames for testing
+        while True:
+            dummy_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            cv2.putText(dummy_frame, "No Camera", (200, 240), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
+            process_and_yield_frame(dummy_frame)
 
     # =========================
     # Main Loop
