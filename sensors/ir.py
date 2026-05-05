@@ -1,6 +1,3 @@
-import os
-os.environ["GPIOZERO_PIN_FACTORY"] = "lgpio"
-
 import random
 import logging
 
