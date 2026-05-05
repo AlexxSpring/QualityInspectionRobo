@@ -1,28 +1,39 @@
 import cv2
 import numpy as np
 
-# OpenVINO import
-from openvino import Core
+# TensorFlow Lite import
+try:
+    import tflite_runtime.interpreter as tflite
+except ImportError:
+    try:
+        import tensorflow.lite as tflite
+    except ImportError:
+        tflite = None
 
 # =========================
 # LOAD MODEL (runs once)
 # =========================
-try:
-    ie = Core()
+interpreter = None
+input_details = None
+output_details = None
 
-    # 👉 Make sure this path is correct
-    model = ie.read_model("models/prediction.tflite")
+if tflite:
+    try:
+        # 👉 Make sure this path is correct
+        interpreter = tflite.Interpreter(model_path="models/prediction.tflite")
+        interpreter.allocate_tensors()
 
-    compiled_model = ie.compile_model(model, "CPU")
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
 
-    input_layer = compiled_model.input(0)
-    output_layer = compiled_model.output(0)
+        MODEL_LOADED = True
+        print("✅ TFLite model loaded successfully")
 
-    MODEL_LOADED = True
-    print("✅ OpenVINO model loaded successfully")
-
-except Exception as e:
-    print("❌ Model load failed:", e)
+    except Exception as e:
+        print("❌ Model load failed:", e)
+        MODEL_LOADED = False
+else:
+    print("❌ TFLite not available")
     MODEL_LOADED = False
 
 
@@ -61,8 +72,9 @@ def classify_object(image):
         # =========================
         # INFERENCE
         # =========================
-        result = compiled_model([img])[output_layer]
-        preds = result[0]
+        interpreter.set_tensor(input_details[0]['index'], img)
+        interpreter.invoke()
+        preds = interpreter.get_tensor(output_details[0]['index'])[0]
 
         # =========================
         # POSTPROCESS
