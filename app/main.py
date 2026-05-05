@@ -36,7 +36,7 @@ app.include_router(log_routes.router, prefix="/api/logs", tags=["Logs"])
 
 @app.get("/")
 async def serve_dashboard(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 if __name__ == "__main__":
     import uvicorn
