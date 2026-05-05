@@ -46,8 +46,11 @@ def generate_frames():
         # Generate dummy frames for testing
         while True:
             dummy_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-            cv2.putText(dummy_frame, "No Camera", (200, 240), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
-            process_and_yield_frame(dummy_frame)
+            cv2.putText(dummy_frame, "No Camera - Connect USB Camera",
+                        (60, 240), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+            yield from process_and_yield_frame(dummy_frame)
+            time.sleep(0.1)   # ~10 fps for the dummy stream
+        return  # unreachable, but signals end of generator path
 
     # =========================
     # Main Loop
@@ -60,7 +63,7 @@ def generate_frames():
             image = frame.array
 
             # Process frame
-            process_and_yield_frame(image)
+            yield from process_and_yield_frame(image)
 
             raw_capture.truncate(0)
             time.sleep(0.03)
@@ -75,7 +78,7 @@ def generate_frames():
                 time.sleep(0.1)  # wait a bit before retry
                 continue
 
-            process_and_yield_frame(frame)
+            yield from process_and_yield_frame(frame)
 
 def process_and_yield_frame(frame):
     # ========================= 
